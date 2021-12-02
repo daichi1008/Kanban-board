@@ -39,7 +39,7 @@ color:${color.Silver};
 const Input =styled.input.attrs({type:'search'})`
 width: 100%;
 padding:6px 8px 6px 0;
-color: ${color.White};
+color: ${color.Black};
 font-size: 14px;
 
 :focus{
