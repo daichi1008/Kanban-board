@@ -1,53 +1,77 @@
 import React,{useState,useEffect} from 'react'
 import styled from 'styled-components'
+import { useDispatch,useSelector } from 'react-redux'
 import produce from 'immer'
-import {randomID} from './util'
-import {api} from './api'
+import {randomID, sortBy, reorderPatch} from './util'
+import {api , ColumnID, CardID} from './api'
+
 import { Header as _Header } from './Header'
 import { Column } from './Column'
 import { DeleteDialog } from './DeletaDialog'
 import { Overlay as _Overlay } from './Overlay'
 
-type Columns = {
-  id: string
+
+type State = {
+  columns?:{
+  id: ColumnID
   title?: string
   text?: string
   cards?: {
-    id: string
+    id: CardID
     text?: string
   }[]
 }[]
-
+cardsOrder: Record<string,CardID | ColumnID>
+}
 export function App() {
-  const [filterValue, setFilterValue]=useState('')
+  const dispatch=useDispatch()
+  const filterValue=useSelector(state=> state.filterValue)
+ const setFilterValue = (value: string) =>
+    dispatch({
+      type: 'Filter.setFilter',
+      payload: {
+        value,
+      },
+    })
 
-  const [columns, setColumns] = useState<Columns>([])
+  const [{ columns, cardsOrder }, setData] = useState<State>({ cardsOrder: {} })
 
  useEffect(() => {
     ;(async () => {
       const columns = await api('GET /v1/columns', null)
 
-      setColumns(columns)
+    
+   setData(
+    produce((draft: State)=>{
+      draft.columns=columns
+    }),
+  )
 
-      const unorderedCards = await api('GET /v1/cards', null)
-
- setColumns(
-        produce((columns: Columns) => {
-          columns.forEach(column => {
-            column.cards = unorderedCards
+    
+      const [unorderedCards, cardsOrder]=await Promise.all([
+        api('GET /v1/cards',null),
+        api('GET /v1/cardsOrder',null),
+      ])
+ setData(
+        produce((draft: State) => {
+          draft.cardsOrder= cardsOrder
+          draft.columns?.forEach(column => {
+            column.cards = sortBy(unorderedCards, cardsOrder,column.id)
           })
         }),
       )
     })()
   }, [])
   
-   const [draggingCardID, setDraggingCardID] = useState<string | undefined>(
+
+
+   const [draggingCardID, setDraggingCardID] = useState<CardID | undefined>(
     undefined,
   )
 
 
 
-  const dropCardTo = (toID: string) => {
+  const dropCardTo = (toID: CardID | ColumnID) => {
     const fromID = draggingCardID
     if (!fromID) return
 
@@ -55,39 +79,29 @@ export function App() {
 
     if (fromID === toID) return
 
-   
-    setColumns(
-      produce((columns:Columns)=>{
-        const card =columns
-        .flatMap(col => col.cards ?? [])
-       .find(c => c.id=== fromID)
-       if (!card) return
-     
-       const fromColumn=columns.find(col=>
-        col.cards?.some(c => c.id === fromID)
-       )
-     if(!fromColumn?.cards)return
+   const patch= reorderPatch(cardsOrder, fromID, toID)
 
-     fromColumn.cards = fromColumn.cards.filter(c => c.id !== fromID)
+    setData(
+      produce((draft:State)=>{
+        draft.cardsOrder = {
+          ...draft.cardsOrder,
+          ...patch,
+        }
 
-     const toColumn=columns.find(
-       col=> col.id === toID || col.cards?.some(c=> c.id ===toID),
-     )
-     if(!toColumn?.cards)return
-
-     let index=toColumn.cards.findIndex(c => c.id=== toID)
-     if(index<0){
-      index=toColumn.cards.length
-    }  
-  toColumn.cards.splice(index,0,card)  
+      const unorderedCards = draft.columns?.flatMap(c => c.cards ?? []) ?? []
+        draft.columns?.forEach(column => {
+         column.cards = sortBy(unorderedCards, draft.cardsOrder, column.id)
+       
+        })
   }),
     )
+
+    api('PATCH /v1/cardsOrder',patch)
     }
-const setText =(columnID: string, value: string)=>{
-  
-  setColumns(
-    produce((columns:Columns)=>{
-      const column= columns.find(c=> c.id ===columnID)
+const setText =(columnID: ColumnID, value: string)=>{
+  setData(
+    produce((draft:State)=>{
+      const column= draft.columns?.find(c=> c.id ===columnID)
       if(!column) return
 
       column.text=value
@@ -95,24 +109,30 @@ const setText =(columnID: string, value: string)=>{
   )
 }
 
-const addCard=(columnID:string)=>{
-  const column =columns.find(c => c.id === columnID)
+const addCard=(columnID:ColumnID)=>{
+  const column =columns?.find(c => c.id === columnID)
   if (!column) return
 
   const text = column.text
-  const CardID=randomID()
+  const CardID=randomID() as CardID
   
+  const patch= reorderPatch(cardsOrder,CardID,cardsOrder[columnID])
 
-  setColumns(
-    produce((columns:Columns)=>{
-      const column =columns.find(c => c.id===columnID)
-      if(!column)return
+  setData(
+    produce((draft:State)=>{
+      const column =draft.columns?.find(c => c.id===columnID)
+      if(!column?.cards)return
 
-      column.cards?.unshift({
+      column.cards.unshift({
         id: CardID,
         text: column.text,
       })
       column.text=''
+
+      draft.cardsOrder={
+        ...draft.cardsOrder,
+        ...patch,
+      }
     })
   )
 
@@ -120,9 +140,10 @@ const addCard=(columnID:string)=>{
     id:CardID,
     text,
   })
+api('PATCH /v1/cardsOrder',patch)
 }
 
-const [deletingCardID, setDeletingCardID]=useState<string | undefined>(
+const [deletingCardID, setDeletingCardID]=useState<CardID | undefined>(
   undefined,
 )
    const deleteCard = () => {
@@ -131,17 +152,28 @@ const [deletingCardID, setDeletingCardID]=useState<string | undefined>(
 
      setDeletingCardID(undefined)
 
-     setColumns(
-       produce((columns: Columns) => {
-         const column = columns.find(col =>
+     const patch= reorderPatch(cardsOrder,cardID)
+
+     setData(
+       produce((draft: State) => {
+         const column = draft.columns?.find(col =>
 
           col.cards?.some(c => c.id === cardID),
          )
-         if (!column) return
+         if (!column?.cards) return
 
-        column.cards = column.cards?.filter(c => c.id !== cardID)
+        column.cards = column.cards.filter(c => c.id !== cardID)
+
+        draft.cardsOrder={
+          ...draft.cardsOrder,
+          ...patch,
+        }
        }),
      )
+api('DELETE /v1/cards',{
+  id:cardID,
+})
+api('PATCH /v1/cardsOrder',patch)
    }
   return (
     <Container>
@@ -149,7 +181,10 @@ const [deletingCardID, setDeletingCardID]=useState<string | undefined>(
 
       <MainArea>
         <HorizontalScroll>
-        {columns.map(({id: columnID,title,cards,text})=>(
+        {!columns ?(
+          <Loading />
+        ):(
+        columns.map(({id: columnID,title,cards,text})=>(
           <Column
           key={columnID}
           title={title}
@@ -162,14 +197,16 @@ const [deletingCardID, setDeletingCardID]=useState<string | undefined>(
         onTextChange={value=> setText(columnID,value)}
         onTextConfirm={()=> addCard(columnID)}
       />
-          ))}
+          ))
+        )}
         </HorizontalScroll>
       </MainArea>
 
 {deletingCardID &&(
   <Overlay onClick={() => setDeletingCardID(undefined)}>
 <DeleteDialog 
-onConfirm={()=> setDeletingCardID(undefined)}
+// onConfirm={()=> setDeletingCardID(undefined)}
+onConfirm={deleteCard}
 onCancel={()=> setDeletingCardID(undefined)}
 
 />
@@ -213,6 +250,14 @@ const HorizontalScroll = styled.div`
     content: '';
   }
 `
+
+const Loading = styled.div.attrs({
+  children: 'Loading...',
+})`
+font-size: 14px;
+`
+
+
 
 const Overlay=styled(_Overlay)`
 display: flex;

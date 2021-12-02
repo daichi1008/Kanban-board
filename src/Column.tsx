@@ -4,6 +4,7 @@ import * as color from './color'
 import { Card } from './Card'
 import { PlusIcon } from './icon'
 import {  InputForm as _InputForm } from './InputForm'
+import { CardID } from './api'
 
 export function Column({
   title,
@@ -20,12 +21,12 @@ onTextCancel,
   title?: string
   filterValue?: string
   cards?: {
-    id: string
+    id: CardID
     text?: string
   }[]
-onCardDragStart?(id: string): void
-onCardDrop?(entered: string | null):void
-onCardDeleteClick?(id: string):void
+onCardDragStart?(id: CardID): void
+onCardDrop?(entered: CardID | null):void
+onCardDeleteClick?(id: CardID):void
 text?:string
 onTextChange?(vale:string):void
 onTextConfirm?():void
@@ -49,17 +50,17 @@ const cancelInput=()=>{
   onTextCancel?.()
 }
 
-const [draggingCardID,setDraggingCardID]=useState<string | undefined>(
+const [draggingCardID,setDraggingCardID]=useState<CardID | undefined>(
   undefined,
 )
-const handleCardDragStart=(id:string)=>{
+const handleCardDragStart=(id:CardID)=>{
   setDraggingCardID(id)
   onCardDragStart?.(id)
 }
   return (
     <Container>
       <Header>
-        {totalCount}=0 && <CountBadge>{totalCount}</CountBadge>
+      {totalCount >= 0 && <CountBadge>{totalCount}</CountBadge>}
         <ColumnName>{title}</ColumnName>
 
         <AddButton  onClick={toggleInput}/>
