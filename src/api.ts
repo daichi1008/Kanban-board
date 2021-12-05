@@ -38,12 +38,12 @@ export type ReqAndRes = {
 
   'GET /v1/cardsOrder':{
     req:null
-    res:Record<string, CardID | ColumnID>
+    res:Record<string, CardID | ColumnID | null>
   }
   
 'PATCH /v1/cardsOrder':{
-  req: Record<string, string | ColumnID>
-  res: Record<string ,string | ColumnID>
+  req: Record<string, string | ColumnID | null>
+  res: Record<string ,string | ColumnID | null>
 }
 
 }
@@ -60,7 +60,7 @@ export async function api<K extends keyof ReqAndRes>(
   }
 
   let pathWithID = ''
-  const option: RequestInit = { method }
+const option: RequestInit = { method }
   switch (option.method) {
     case 'GET':
     case 'DELETE':
@@ -83,7 +83,7 @@ export async function api<K extends keyof ReqAndRes>(
       break
   }
 
-  return fetch(`${Endpoint}${pathWithID || path}`, option).then(res =>
+return fetch(`${Endpoint}${pathWithID || path}`, option).then(res =>
     res.ok
       ? res.json()
       : res.text().then(text => {
