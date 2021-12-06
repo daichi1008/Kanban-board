@@ -21,7 +21,7 @@ function cleanNull(path){
         try{
             if (req.method !== 'GET')return
 
-            const db=req.add.db
+            const db=req.app.db
             const {isNull}=db._
 
             const newValue =db.get(path).omitBy(isNull).value()

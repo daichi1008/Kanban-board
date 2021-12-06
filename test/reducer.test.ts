@@ -46,58 +46,113 @@ test('App.SetCards', async () => {
 
   const next = reducer(prev, {
     type: 'App.SetCards',
-    payload:{
-      cards:[
+    payload: {
+      cards: [
         {
           id: '3' as CardID,
         },
         {
-          id: '2' as CardID
+          id: '2' as CardID,
         },
         {
-          id: '1' as CardID 
+          id: '1' as CardID,
         },
       ],
-    cardsOrder:{
-      A: '1' as CardID,
-      '1':'2' as CardID,
-      '2':'A' as CardID,
-      B :'3' as CardID,
-      '3': 'B' as CardID,
-    },
+      cardsOrder: {
+        A: '1' as CardID,
+        '1': '2' as CardID,
+        '2': 'A' as CardID,
+        B: '3' as CardID,
+        '3': 'B' as CardID,
+      },
     },
   })
 
-const expected = produce(prev, draft => {
-  draft.cardsOrder = {
-    A:'1' as CardID,
-    '1':'2' as CardID,
-    '2':'A' as CardID,
-    B: '3' as CardID,
-    '3': 'B' as CardID,
-  }
-  draft.columns = [
-    {
-      id:'A' as ColumnID,
-      cards: [
-        {
-          id:'1' as CardID,
-        },
-        {id:'2' as CardID,
+  const expected = produce(prev, draft => {
+    draft.cardsOrder = {
+      A: '1' as CardID,
+      '1': '2' as CardID,
+      '2': 'A' as CardID,
+      B: '3' as CardID,
+      '3': 'B' as CardID,
+    }
+    draft.columns = [
+      {
+        id: 'A' as ColumnID,
+        cards: [
+          {
+            id: '1' as CardID,
+          },
+          {
+            id: '2' as CardID,
+          },
+        ],
       },
-          ],
-        },
-        {
-          id: 'B' as ColumnID,
-          cards:[
-            {
-              id: '3' as CardID,
-            },
-          ],
-        },
-  ]
-})
-assert.deepStrictEqual(next, expected)
+      {
+        id: 'B' as ColumnID,
+        cards: [
+          {
+            id: '3' as CardID,
+          },
+        ],
+      },
+    ]
+  })
+
+  assert.deepStrictEqual(next, expected)
 })
 
+test('Dialog.ConfirmDelete', async () => {
+  const prev = produce(initialState, draft => {
+    draft.deletingCardID = '3' as CardID
+
+    draft.cardsOrder = {
+      A: '1' as CardID,
+      '1': '2' as CardID,
+      '2': 'A' as CardID,
+      B: '3' as CardID,
+      '3': 'B' as CardID,
+    }
+    draft.columns = [
+      {
+        id: 'A' as ColumnID,
+        cards: [
+          {
+            id: '1' as CardID,
+          },
+          {
+            id: '2' as CardID,
+          },
+        ],
+     },
+      {
+        id: 'B' as ColumnID,
+        cards: [
+          {
+            id: '3' as CardID,
+          },
+        ],
+      },
+    ]
+  })
+
+  const next = reducer(prev, {
+    type: 'Dialog.ConfirmDelete',
+  })
+
+  const expected = produce(prev, draft => {
+    draft.deletingCardID = undefined
+
+    draft.cardsOrder = {
+      ...draft.cardsOrder,
+      B: 'B' as CardID,
+      '3': null,
+    }
+
+    const column = draft.columns![1]!
+    column.cards = []
+  })
+
+  assert.deepStrictEqual(next, expected)
+})
 test.run()

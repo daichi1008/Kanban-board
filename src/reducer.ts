@@ -1,6 +1,6 @@
 import { Reducer } from "redux";
 import produce  from "immer";
-import { sortBy } from "./util";
+import { sortBy,reorderPatch } from "./util";
 import {CardID, ColumnID} from './api'
 
 export type State ={
@@ -15,12 +15,13 @@ columns?:{
     }[]
 }[]
 cardsOrder: Record<string, CardID | ColumnID | null>
+deletingCardID?: CardID
 }
 
 
 const initialState: State={
     filterValue:'',
-cardsOrder:{}
+cardsOrder:{},
 }
 
 export type Action={
@@ -49,38 +50,85 @@ export type Action={
         cardsOrder: Record<string, CardID | ColumnID |null>
     }
 }
-export const reducer :Reducer<
-State,
-Action
- > = produce((draft: State, action: Action) => {
-     switch(action.type){
-         case'Filter.setFilter':{
-             const {value}=action.payload
-draft.filterValue=value
-return
+
+| {
+      type: 'Card.SetDeletingCard'
+      payload: {
+        cardID: CardID
+      }
+    }
+  | {
+      type: 'Dialog.ConfirmDelete'
+    }
+  | {
+      type: 'Dialog.CancelDelete'
+    }
+
+ export const reducer: Reducer<State, Action> = produce(
+   (draft: State, action: Action) => {
+     switch (action.type) {
+       case 'Filter.setFilter': {
+         const { value } = action.payload
+
+         draft.filterValue = value
+         return
+       
          }
     
          case 'App.SetColumns':{
-        const { columns } = action.payload
+     const { columns } = action.payload
 
-          draft.columns = columns
-         
+        draft.columns = columns
             return
      }
      case 'App.SetCards':{
-const { cards: unorderedCards, cardsOrder } = action.payload
-
-draft.cardsOrder = cardsOrder
-draft.columns?.forEach(column => {
+ const { cards: unorderedCards, cardsOrder } = action.payload
+console.log(cardsOrder)
+        draft.cardsOrder = cardsOrder
+        draft.columns?.forEach(column => {
           column.cards = sortBy(unorderedCards, cardsOrder, column.id)
         })
 
          return
      }
 
-     default:{
-         const _: never = action
+     case 'Card.SetDeletingCard':{
+         const {cardID} = action.payload
+
+         draft.deletingCardID = cardID
+          return
      }
+
+      case 'Dialog.ConfirmDelete': {
+        const cardID = draft.deletingCardID
+        if (!cardID) return
+
+        draft.deletingCardID = undefined
+
+        const column = draft.columns?.find(col =>
+          col.cards?.some(c => c.id === cardID),
+        )
+        if (!column?.cards) return
+
+        column.cards = column.cards.filter(c => c.id !== cardID)
+
+        const patch = reorderPatch(draft.cardsOrder, cardID)
+        draft.cardsOrder = {
+          ...draft.cardsOrder,
+          ...patch,
         }
- }, initialState
+         return
+       }
+
+       case 'Dialog.CancelDelete': {
+         draft.deletingCardID = undefined
+         return
+       }
+
+       default: {
+         const _: never = action
+       }
+     }
+   },
+   initialState,
  )

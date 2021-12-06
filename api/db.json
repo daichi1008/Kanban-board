@@ -19,10 +19,6 @@
   ],
   "cards": [
     {
-      "id": "7lR4Vd3EYixP",
-      "text": "布団から出る\n(:3っ)っ -=三[＿＿]"
-    },
-    {
       "id": "rh022hj9zG58",
       "text": "歯を磨く🦷"
     },
@@ -44,16 +40,14 @@
     }
   ],
   "cardsOrder": {
-    "cXrtw5n8-FsB": "7lR4Vd3EYixP",
+    "cXrtw5n8-FsB": "w7DTqK1QQKTI",
     "w7DTqK1QQKTI": "w7DTqK1QQKTI",
     "bfrqTfEydU38": "bfrqTfEydU38",
     "dfwMbxZS0EmM": "dfwMbxZS0EmM",
-    "7lR4Vd3EYixP": "w7DTqK1QQKTI",
     "TsXP5w9qLeM-": "ulnuLLt5TN93",
     "rh022hj9zG58": "TsXP5w9qLeM-",
     "3NRSLMq49xvT": "cXrtw5n8-FsB",
     "ulnuLLt5TN93": "-wkumDeruhSx",
-    "-wkumDeruhSx": "3NRSLMq49xvT",
-    "OFE0tMes-MrP": null
+    "-wkumDeruhSx": "3NRSLMq49xvT"
   }
 }

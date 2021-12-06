@@ -57,6 +57,7 @@ const handleCardDragStart=(id:CardID)=>{
   setDraggingCardID(id)
   onCardDragStart?.(id)
 }
+console.log(cards)
   return (
     <Container>
       <Header>
@@ -112,8 +113,8 @@ onCancel={cancelInput}
 )}
     </Container>
   )
-}
 
+}
 const Container = styled.div`
   display: flex;
   flex-flow: column;

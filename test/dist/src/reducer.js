@@ -11,7 +11,7 @@ const initialState = {
     cardsOrder: {}
 };
 exports.reducer = (0, immer_1.default)((draft, action) => {
-    var _a;
+    var _a, _b;
     switch (action.type) {
         case 'Filter.setFilter': {
             const { value } = action.payload;
@@ -29,6 +29,31 @@ exports.reducer = (0, immer_1.default)((draft, action) => {
             (_a = draft.columns) === null || _a === void 0 ? void 0 : _a.forEach(column => {
                 column.cards = (0, util_1.sortBy)(unorderedCards, cardsOrder, column.id);
             });
+            return;
+        }
+        case 'Card.SetDeletingCard': {
+            const { cardID } = action.payload;
+            draft.deletingCardID = cardID;
+            return;
+        }
+        case 'Dialog.ConfirmDelete': {
+            const cardID = draft.deletingCardID;
+            if (!cardID)
+                return;
+            draft.deletingCardID = undefined;
+            const column = (_b = draft.columns) === null || _b === void 0 ? void 0 : _b.find(col => { var _a; return (_a = col.cards) === null || _a === void 0 ? void 0 : _a.some(c => c.id === cardID); });
+            if (!(column === null || column === void 0 ? void 0 : column.cards))
+                return;
+            column.cards = column.cards.filter(c => c.id !== cardID);
+            const patch = (0, util_1.reorderPatch)(draft.cardsOrder, cardID);
+            draft.cardsOrder = {
+                ...draft.cardsOrder,
+                ...patch,
+            };
+            return;
+        }
+        case 'Dialog.CancelDelete': {
+            draft.deletingCardID = undefined;
             return;
         }
         default: {

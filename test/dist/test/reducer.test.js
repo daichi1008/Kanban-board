@@ -46,10 +46,10 @@ test('App.SetCards', async () => {
                     id: '3',
                 },
                 {
-                    id: '2'
+                    id: '2',
                 },
                 {
-                    id: '1'
+                    id: '1',
                 },
             ],
             cardsOrder: {
@@ -76,7 +76,8 @@ test('App.SetCards', async () => {
                     {
                         id: '1',
                     },
-                    { id: '2',
+                    {
+                        id: '2',
                     },
                 ],
             },
@@ -89,6 +90,53 @@ test('App.SetCards', async () => {
                 ],
             },
         ];
+    });
+    assert_1.default.deepStrictEqual(next, expected);
+});
+test('Dialog.ConfirmDelete', async () => {
+    const prev = (0, immer_1.default)(initialState, draft => {
+        draft.deletingCardID = '3';
+        draft.cardsOrder = {
+            A: '1',
+            '1': '2',
+            '2': 'A',
+            B: '3',
+            '3': 'B',
+        };
+        draft.columns = [
+            {
+                id: 'A',
+                cards: [
+                    {
+                        id: '1',
+                    },
+                    {
+                        id: '2',
+                    },
+                ],
+            },
+            {
+                id: 'B',
+                cards: [
+                    {
+                        id: '3',
+                    },
+                ],
+            },
+        ];
+    });
+    const next = (0, reducer_1.reducer)(prev, {
+        type: 'Dialog.ConfirmDelete',
+    });
+    const expected = (0, immer_1.default)(prev, draft => {
+        draft.deletingCardID = undefined;
+        draft.cardsOrder = {
+            ...draft.cardsOrder,
+            B: 'B',
+            '3': null,
+        };
+        const column = draft.columns[1];
+        column.cards = [];
     });
     assert_1.default.deepStrictEqual(next, expected);
 });
