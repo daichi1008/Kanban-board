@@ -1,8 +1,7 @@
-import React,{useEffect} from 'react'
+import React, { useEffect } from 'react'
 import styled from 'styled-components'
-import { useDispatch,useSelector } from 'react-redux'
-import {randomID,reorderPatch} from './util'
-import {api , ColumnID, CardID} from './api'
+import { useDispatch, useSelector, shallowEqual } from 'react-redux'
+import { api } from './api'
 import { Header as _Header } from './Header'
 import { Column } from './Column'
 import { DeleteDialog } from './DeletaDialog'
@@ -11,46 +10,43 @@ import { Overlay as _Overlay } from './Overlay'
 
 
 export function App() {
-  const dispatch=useDispatch()
-
-    const columns = useSelector(state => state.columns)
-  const cardIsBeingDeleted = useSelector(state => Boolean(state.deletingCardID))
- 
-  const cancelDelete = () =>
-   dispatch({
-      type: 'Dialog.CancelDelete',
-    })
+  const dispatch = useDispatch()
+  const columns = useSelector(
+    state => state.columns?.map(v => v.id),
+    shallowEqual,
+  )
 
 
-useEffect(() => {
-    ;(async () => {
+
+  useEffect(() => {
+    ; (async () => {
       const columns = await api('GET /v1/columns', null)
-    
- dispatch({
+
+      dispatch({
         type: 'App.SetColumns',
         payload: {
           columns,
         },
       })
-    
-      const [unorderedCards, cardsOrder]=await Promise.all([
-        api('GET /v1/cards',null),
-        api('GET /v1/cardsOrder',null),
+
+      const [unorderedCards, cardsOrder] = await Promise.all([
+        api('GET /v1/cards', null),
+        api('GET /v1/cardsOrder', null),
       ])
 
-     dispatch({
+      dispatch({
         type: 'App.SetCards',
-       payload: {
+        payload: {
           cards: unorderedCards,
           cardsOrder,
         },
       })
-     })()
+    })()
   }, [dispatch])
-  
 
 
- 
+
+
 
 
 
@@ -60,32 +56,18 @@ useEffect(() => {
 
       <MainArea>
         <HorizontalScroll>
-        {!columns ?(
-          <Loading />
-        ):(
-      
-     columns.map(({ id: columnID, title, cards, text }) => (
-               <Column
-                 key={columnID}
-                 id={columnID}
-                 title={title}
-                 cards={cards}
-                 text={text}
-                // onTextChange={value => setText(columnID, value)}
-                //  onTextConfirm={() => addCard(columnID)}
-               />
-             ))
-      
-        )}
+          {!columns ? (
+            <Loading />
+          ) : (
+
+            columns.map(id => <Column key={id} id={id} />)
+
+          )}
         </HorizontalScroll>
       </MainArea>
 
-{cardIsBeingDeleted &&(
-  <Overlay onClick={cancelDelete}>
-<DeleteDialog />
-      </Overlay>
-)}
-      
+      <DialogOverlay />
+
     </Container>
   )
 }
@@ -130,9 +112,27 @@ const Loading = styled.div.attrs({
 font-size: 14px;
 `
 
+function DialogOverlay() {
+  const dispatch = useDispatch()
+  const cardIsBeingDeleted = useSelector(state => Boolean(state.deletingCardID))
 
+  const cancelDelete = () =>
+    dispatch({
+      type: 'Dialog.CancelDelete',
+    })
 
-const Overlay=styled(_Overlay)`
+  if (!cardIsBeingDeleted) {
+    return null
+  }
+
+  return (
+    <Overlay onClick={cancelDelete}>
+      <DeleteDialog />
+    </Overlay>
+  )
+}
+
+const Overlay = styled(_Overlay)`
 display: flex;
 justify-content: center;
 align-items: center;

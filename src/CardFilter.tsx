@@ -1,34 +1,55 @@
-import React from "react";
+import React, { useState, useEffect } from 'react'
 import styled from "styled-components";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useStore } from "react-redux";
 import *as color from './color'
-import {SearchIcon as _SearchIcon} from './icon'
+import { SearchIcon as _SearchIcon } from './icon'
 
-export function CardFilter(){
+export function CardFilter() {
+  const store = useStore()
   const dispatch = useDispatch()
-  const value = useSelector(state => state.filterValue)
-  const onChange = (value: string)=>
-  dispatch({
-    type: 'Filter.setFilter',
-    payload:{
-      value,
-    },
-  })
+
+  const [value, setValue] = useState('')
+
+  useEffect(
+    () =>
+      store.subscribe(() => {
+        const { filterValue } = store.getState()
+        if (value === filterValue) return
+
+        setValue(filterValue)
+      }),
+    [store, value],
+  )
+
+  useEffect(() => {
+    const timer = setTimeout(
+      () =>
+        dispatch({
+          type: 'Filter.setFilter',
+          payload: {
+            value,
+          },
+        }),
+      400,
+    )
+
+    return () => clearTimeout(timer)
+  }, [dispatch, value])
 
 
-   return (
-     <Container>
-       <SearchIcon />
-       <Input
-         placeholder="Filter cards"
+  return (
+    <Container>
+      <SearchIcon />
+      <Input
+        placeholder="Filter cards"
         value={value}
-        onChange={ev => onChange(ev.currentTarget.value)}
-       />
-     </Container>
-   )
- }
+        onChange={ev => setValue(ev.currentTarget.value)}
+      />
+    </Container>
+  )
+}
 
-const Container=styled.label`
+const Container = styled.label`
 display: flex;
 align-items: center;
 min-width: 300px;
@@ -36,13 +57,13 @@ border:solid 1px ${color.Silver} ;
 border-radius: 3px;
 `
 
-const SearchIcon= styled(_SearchIcon)`
+const SearchIcon = styled(_SearchIcon)`
 margin: 0 4px 0 8px;
 font-size: 16px;
 color:${color.Silver};
 `
 
-const Input =styled.input.attrs({type:'search'})`
+const Input = styled.input.attrs({ type: 'search' })`
 width: 100%;
 padding:6px 8px 6px 0;
 color: ${color.Black};

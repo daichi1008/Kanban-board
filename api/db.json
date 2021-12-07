@@ -23,10 +23,6 @@
       "text": "布団から出る\n(:3っ)っ -=三[＿＿]"
     },
     {
-      "id": "TsXP5w9qLeM-",
-      "text": "顔を洗う👐"
-    },
-    {
       "id": "rh022hj9zG58",
       "text": "歯を磨く🦷"
     },
@@ -44,13 +40,14 @@
     }
   ],
   "cardsOrder": {
-    "cXrtw5n8-FsB": "3NRSLMq49xvT",
-    "w7DTqK1QQKTI": "w7DTqK1QQKTI",
+    "cXrtw5n8-FsB": "ulnuLLt5TN93",
+    "w7DTqK1QQKTI": "rh022hj9zG58",
     "bfrqTfEydU38": "bfrqTfEydU38",
-    "dfwMbxZS0EmM": "7lR4Vd3EYixP",
-    "7lR4Vd3EYixP": "dfwMbxZS0EmM",
-    "3NRSLMq49xvT": "ulnuLLt5TN93",
-    "ulnuLLt5TN93": "-wkumDeruhSx",
-    "-wkumDeruhSx": "cXrtw5n8-FsB"
+    "dfwMbxZS0EmM": "-wkumDeruhSx",
+    "7lR4Vd3EYixP": "3NRSLMq49xvT",
+    "rh022hj9zG58": "w7DTqK1QQKTI",
+    "3NRSLMq49xvT": "cXrtw5n8-FsB",
+    "ulnuLLt5TN93": "7lR4Vd3EYixP",
+    "-wkumDeruhSx": "dfwMbxZS0EmM"
   }
 }
