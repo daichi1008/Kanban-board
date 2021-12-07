@@ -19,6 +19,14 @@
   ],
   "cards": [
     {
+      "id": "7lR4Vd3EYixP",
+      "text": "布団から出る\n(:3っ)っ -=三[＿＿]"
+    },
+    {
+      "id": "TsXP5w9qLeM-",
+      "text": "顔を洗う👐"
+    },
+    {
       "id": "rh022hj9zG58",
       "text": "歯を磨く🦷"
     },
@@ -33,21 +41,16 @@
     {
       "id": "-wkumDeruhSx",
       "text": "布団に入る\n(:3[___]"
-    },
-    {
-      "id": "mp7RP_SLuNGw",
-      "text": "aaa"
     }
   ],
   "cardsOrder": {
-    "cXrtw5n8-FsB": "w7DTqK1QQKTI",
+    "cXrtw5n8-FsB": "3NRSLMq49xvT",
     "w7DTqK1QQKTI": "w7DTqK1QQKTI",
     "bfrqTfEydU38": "bfrqTfEydU38",
-    "dfwMbxZS0EmM": "dfwMbxZS0EmM",
-    "TsXP5w9qLeM-": "ulnuLLt5TN93",
-    "rh022hj9zG58": "TsXP5w9qLeM-",
-    "3NRSLMq49xvT": "cXrtw5n8-FsB",
+    "dfwMbxZS0EmM": "7lR4Vd3EYixP",
+    "7lR4Vd3EYixP": "dfwMbxZS0EmM",
+    "3NRSLMq49xvT": "ulnuLLt5TN93",
     "ulnuLLt5TN93": "-wkumDeruhSx",
-    "-wkumDeruhSx": "3NRSLMq49xvT"
+    "-wkumDeruhSx": "cXrtw5n8-FsB"
   }
 }

@@ -3,6 +3,7 @@ import assert from 'assert'
 import { randomID, sortBy, reorderPatch } from '../src/util'
 
 const test = baretest('util')
+setImmediate(() => test.run())
 
 
 test('randomID: 重複しない', async () => {
@@ -85,4 +86,3 @@ test('reorderPatch', async () => {
   assert.deepStrictEqual(patch, expected)
 })
 
-test.run()

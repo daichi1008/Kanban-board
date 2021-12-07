@@ -1,34 +1,48 @@
 import React,{useState,useRef} from 'react'
 import styled from 'styled-components'
+import { useDispatch, useSelector } from 'react-redux'
+import { reorderPatch } from './util'
+import{api, ColumnID , CardID} from './api'
 import * as color from './color'
 import { CheckIcon as _CheckIcon, TrashIcon } from './icon'
 
 Card.DropArea=DropArea
 
 export function Card({ 
-  text,
-  onDragStart,
-  onDragEnd,
-  onDeleteClick,
+  id,
 
  }: {
-    text?: string
-    onDragStart?():void
-    onDragEnd?() :void
-    onDeleteClick?():void
+   id: CardID
   }) {
-  const [drag,setDrag]=useState(false)
+  const dispatch = useDispatch()
+ const card = useSelector(state =>
+  state.columns?.flatMap(c => c.cards ?? []).find(c => c.id ===id),
+  ) 
+  const drag = useSelector(state => state.draggingCardID === id) 
+  const onDeleteClick = () =>
 
-  return (
+  dispatch({
+      type: 'Card.SetDeletingCard',
+      payload: {
+        cardID: id,
+      },
+    })
+
+    if(!card){
+      return null
+    }
+const {text} = card
+
+return (
     <Container
     style={{opacity:drag? 0.5:undefined}}
     onDragStart={()=>{
-      onDragStart?.()
-      setDrag(true)
-    }}
-    onDragEnd={()=>{
-      onDragEnd?.()
-      setDrag(false)
+   dispatch({
+     type :'Card.StartDragging',
+     payload:{
+       cardID: id,
+     },
+   })
     }}
     >
       <CheckIcon />
@@ -100,18 +114,22 @@ const Link = styled.a.attrs({
 `
 
 function DropArea({
+ targetID: toID,
   disabled,
-  onDrop,
   children,
   className,
   style,
 }: {
+  targetID: CardID | ColumnID
   disabled?: boolean
-  onDrop?(): void
   children?: React.ReactNode
   className?: string
   style?: React.CSSProperties
 }) {
+  const dispatch = useDispatch()
+  const draggingCardID = useSelector(state => state.draggingCardID)
+  const cardsOrder = useSelector(state => state.cardsOrder)
+
   const [isTarget, setIsTarget] = useState(false)
   const visible = !disabled && isTarget
 
@@ -134,9 +152,20 @@ function DropArea({
       }}
      onDrop={() => {
         if (disabled) return
+  if (!draggingCardID || draggingCardID === toID) return
 
-       setIsTarget(false)
-        onDrop?.()
+        dispatch({
+          type: 'Card.Drop',
+          payload: {
+            toID,
+          },
+        })
+
+        const patch = reorderPatch(cardsOrder, draggingCardID, toID)
+        api('PATCH /v1/cardsOrder', patch)
+       
+ setIsTarget(false)
+     
       }}
     >
       <DropAreaIndicator
@@ -157,11 +186,13 @@ function useDragAutoLeave(timeout:number=100){
 
   return[
     dragOver,
+    
     (onDragLeave?:() => void)=>{
       clearTimeout(timer.current)
 
       dragOver.current=true
-      timer.current=setTimeout(()=>{
+      
+       timer.current = window.setTimeout(()=>{
         dragOver.current=false
         onDragLeave?.()
       },timeout)

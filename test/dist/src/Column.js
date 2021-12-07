@@ -49,6 +49,7 @@ function Column({ title, filterValue: rawFilterValue, cards: rawCards, onCardDra
         setDraggingCardID(id);
         onCardDragStart === null || onCardDragStart === void 0 ? void 0 : onCardDragStart(id);
     };
+    console.log(cards);
     return (react_1.default.createElement(Container, null,
         react_1.default.createElement(Header, null,
             totalCount >= 0 && react_1.default.createElement(CountBadge, null, totalCount),

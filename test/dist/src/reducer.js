@@ -8,10 +8,10 @@ const immer_1 = __importDefault(require("immer"));
 const util_1 = require("./util");
 const initialState = {
     filterValue: '',
-    cardsOrder: {}
+    cardsOrder: {},
 };
 exports.reducer = (0, immer_1.default)((draft, action) => {
-    var _a, _b;
+    var _a, _b, _c, _d, _e, _f, _g;
     switch (action.type) {
         case 'Filter.setFilter': {
             const { value } = action.payload;
@@ -25,6 +25,7 @@ exports.reducer = (0, immer_1.default)((draft, action) => {
         }
         case 'App.SetCards': {
             const { cards: unorderedCards, cardsOrder } = action.payload;
+            console.log(cardsOrder);
             draft.cardsOrder = cardsOrder;
             (_a = draft.columns) === null || _a === void 0 ? void 0 : _a.forEach(column => {
                 column.cards = (0, util_1.sortBy)(unorderedCards, cardsOrder, column.id);
@@ -54,6 +55,55 @@ exports.reducer = (0, immer_1.default)((draft, action) => {
         }
         case 'Dialog.CancelDelete': {
             draft.deletingCardID = undefined;
+            return;
+        }
+        case 'Card.StartDragging': {
+            const { cardID } = action.payload;
+            draft.draggingCardID = cardID;
+            return;
+        }
+        case 'Card.Drop': {
+            const fromID = draft.draggingCardID;
+            if (!fromID)
+                return;
+            draft.draggingCardID = undefined;
+            const { toID } = action.payload;
+            if (fromID === toID)
+                return;
+            const patch = (0, util_1.reorderPatch)(draft.cardsOrder, fromID, toID);
+            draft.cardsOrder = {
+                ...draft.cardsOrder,
+                ...patch,
+            };
+            const unorderedCards = (_d = (_c = draft.columns) === null || _c === void 0 ? void 0 : _c.flatMap(c => { var _a; return (_a = c.cards) !== null && _a !== void 0 ? _a : []; })) !== null && _d !== void 0 ? _d : [];
+            (_e = draft.columns) === null || _e === void 0 ? void 0 : _e.forEach(column => {
+                column.cards = (0, util_1.sortBy)(unorderedCards, draft.cardsOrder, column.id);
+            });
+            return;
+        }
+        case 'InputForm.SetText': {
+            const { columnID, value } = action.payload;
+            const column = (_f = draft.columns) === null || _f === void 0 ? void 0 : _f.find(c => c.id === columnID);
+            if (!column)
+                return;
+            column.text = value;
+            return;
+        }
+        case 'InputForm.ConfirmInput': {
+            const { columnID, cardID } = action.payload;
+            const column = (_g = draft.columns) === null || _g === void 0 ? void 0 : _g.find(c => c.id === columnID);
+            if (!(column === null || column === void 0 ? void 0 : column.cards))
+                return;
+            column.cards.unshift({
+                id: cardID,
+                text: column.text,
+            });
+            column.text = '';
+            const patch = (0, util_1.reorderPatch)(draft.cardsOrder, cardID, draft.cardsOrder[columnID]);
+            draft.cardsOrder = {
+                ...draft.cardsOrder,
+                ...patch
+            };
             return;
         }
         default: {

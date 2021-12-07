@@ -1,39 +1,36 @@
 import React,{useState} from 'react'
 import styled from 'styled-components'
+import { useSelector } from 'react-redux'
 import * as color from './color'
 import { Card } from './Card'
 import { PlusIcon } from './icon'
 import {  InputForm as _InputForm } from './InputForm'
-import { CardID } from './api'
+import { CardID, ColumnID } from './api'
 
 export function Column({
+  id: columnID,
   title,
-  filterValue: rawFilterValue,
   cards:rawCards,
-  onCardDragStart,
   onCardDrop,
-  onCardDeleteClick,
   text,
   onTextChange,
 onTextConfirm,
 onTextCancel,
 }: {
+  id: ColumnID
   title?: string
-  filterValue?: string
   cards?: {
     id: CardID
     text?: string
   }[]
-onCardDragStart?(id: CardID): void
 onCardDrop?(entered: CardID | null):void
-onCardDeleteClick?(id: CardID):void
 text?:string
 onTextChange?(vale:string):void
 onTextConfirm?():void
 onTextCancel?():void
 }) {
-  const filterValue =rawFilterValue?.trim()
-  const keywords=filterValue?.toLowerCase().split(/\s+/g)??[]
+  const filterValue =useSelector(state => state.filterValue.trim())
+  const keywords=filterValue.toLowerCase().split(/\s+/g)??[]
   const cards=rawCards?.filter(({text})=>
   keywords?.every(w => text?.toLowerCase().includes(w)),
   )
@@ -49,16 +46,9 @@ const cancelInput=()=>{
   setInputMode(false)
   onTextCancel?.()
 }
-
-const [draggingCardID,setDraggingCardID]=useState<CardID | undefined>(
-  undefined,
-)
-const handleCardDragStart=(id:CardID)=>{
-  setDraggingCardID(id)
-  onCardDragStart?.(id)
-}
-console.log(cards)
-  return (
+const draggingCardID = useSelector(state => state.draggingCardID)
+  
+return (
     <Container>
       <Header>
       {totalCount >= 0 && <CountBadge>{totalCount}</CountBadge>}
@@ -83,7 +73,7 @@ onCancel={cancelInput}
 {filterValue && <ResultCount>{cards.length}results</ResultCount>}
 
       <VerticalScroll>
-        {cards.map(({ id, text }, i) => (
+        {cards.map(({ id}, i) => (
           <Card.DropArea 
           key={id}
           disabled={
@@ -93,10 +83,7 @@ onCancel={cancelInput}
           onDrop={()=> onCardDrop?.(id)}
           >
             <Card 
-            text={text} 
-            onDragStart={()=> handleCardDragStart(id)}
-            onDragEnd={()=>setDraggingCardID(undefined)}
-            onDeleteClick={()=> onCardDeleteClick?.(id)}
+          id={id}
             />
          </Card.DropArea>
         ))}

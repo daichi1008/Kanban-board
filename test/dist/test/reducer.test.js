@@ -8,6 +8,7 @@ const assert_1 = __importDefault(require("assert"));
 const immer_1 = __importDefault(require("immer"));
 const reducer_1 = require("../src/reducer");
 const test = (0, baretest_1.default)('reducer');
+setImmediate(() => test.run());
 const initialState = {
     filterValue: '',
     cardsOrder: {}
@@ -140,4 +141,108 @@ test('Dialog.ConfirmDelete', async () => {
     });
     assert_1.default.deepStrictEqual(next, expected);
 });
-test.run();
+test('Card.Drop', async () => {
+    const prev = (0, immer_1.default)(initialState, draft => {
+        draft.draggingCardID = '1';
+        draft.cardsOrder = {
+            A: '1',
+            '1': '2',
+            '2': 'A',
+            B: '3',
+            '3': 'B',
+        };
+        draft.columns = [
+            {
+                id: 'A',
+                cards: [
+                    {
+                        id: '1',
+                    },
+                    {
+                        id: '2',
+                    },
+                ],
+            },
+            {
+                id: 'B',
+                cards: [
+                    {
+                        id: '3',
+                    },
+                ],
+            },
+        ];
+    });
+    const next = (0, reducer_1.reducer)(prev, {
+        type: 'Card.Drop',
+        payload: {
+            toID: '3',
+        },
+    });
+    const expected = (0, immer_1.default)(prev, draft => {
+        draft.draggingCardID = undefined;
+        draft.cardsOrder = {
+            ...draft.cardsOrder,
+            A: '2',
+            B: '1',
+            '1': '3',
+        };
+        const [card] = draft.columns[0].cards.splice(0, 1);
+        draft.columns[1].cards.unshift(card);
+    });
+    assert_1.default.deepStrictEqual(next, expected);
+});
+test('InputForm.ConfirmInput', async () => {
+    const prev = (0, immer_1.default)(initialState, draft => {
+        draft.cardsOrder = {
+            A: '1',
+            '1': '2',
+            '2': 'A',
+            B: '3',
+            '3': 'B',
+        };
+        draft.columns = [
+            {
+                id: 'A',
+                text: 'hello',
+                cards: [
+                    {
+                        id: '1',
+                    },
+                    {
+                        id: '2',
+                    },
+                ],
+            },
+            {
+                id: 'B',
+                cards: [
+                    {
+                        id: '3',
+                    },
+                ],
+            },
+        ];
+    });
+    const next = (0, reducer_1.reducer)(prev, {
+        type: 'InputForm.ConfirmInput',
+        payload: {
+            columnID: 'A',
+            cardID: 'new',
+        },
+    });
+    const expected = (0, immer_1.default)(prev, draft => {
+        draft.cardsOrder = {
+            ...draft.cardsOrder,
+            A: 'new',
+            new: '1',
+        };
+        const column = draft.columns[0];
+        column.text = '';
+        column.cards.unshift({
+            id: 'new',
+            text: 'hello',
+        });
+    });
+    assert_1.default.deepStrictEqual(next, expected);
+});

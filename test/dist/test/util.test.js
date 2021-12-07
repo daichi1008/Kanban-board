@@ -7,6 +7,7 @@ const baretest_1 = __importDefault(require("baretest"));
 const assert_1 = __importDefault(require("assert"));
 const util_1 = require("../src/util");
 const test = (0, baretest_1.default)('util');
+setImmediate(() => test.run());
 test('randomID: 重複しない', async () => {
     // 10,000 程度なら重複する確率はゼロ
     const size = 10000;
@@ -68,4 +69,3 @@ test('reorderPatch', async () => {
     };
     assert_1.default.deepStrictEqual(patch, expected);
 });
-test.run();
